@@ -11,17 +11,18 @@ app = FastAPI(
     version="0.1.0",
 )
 
+#post endpoint to create a new task
 
 @app.post("/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, tags=["tasks"])
 def create_task(payload: TaskCreate) -> TaskResponse:
     return storage.add_task(payload)
 
-
+#get endpoint to list all tasks with optional filters for status and priority
 @app.get("/tasks", response_model=list[TaskResponse], tags=["tasks"])
 def list_tasks(status: TaskStatus | None = None, priority: TaskPriority | None = None) -> list[TaskResponse]:
     return storage.get_all_tasks(status=status, priority=priority)
 
-
+#get endpoint to retrieve a specific task by its ID
 @app.get("/tasks/{task_id}", response_model=TaskResponse, tags=["tasks"])
 def get_task(task_id: str) -> TaskResponse:
     task = storage.get_task_by_id(task_id)
@@ -29,7 +30,7 @@ def get_task(task_id: str) -> TaskResponse:
         raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
     return task
 
-
+#patch endpoint to update a specific task by its ID
 @app.patch("/tasks/{task_id}", response_model=TaskResponse, tags=["tasks"])
 def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
     task = storage.update_task(task_id, payload)
@@ -37,7 +38,7 @@ def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
         raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
     return task
 
-
+#delete endpoint to delete a specific task by its ID
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_200_OK, tags=["tasks"])
 def delete_task(task_id: str) -> dict[str, str]:
     deleted = storage.delete_task(task_id)
