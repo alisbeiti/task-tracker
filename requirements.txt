@@ -3,3 +3,5 @@ uvicorn[standard]==0.30.6
 pydantic==2.9.2
 python-dotenv==1.0.1
 sqlalchemy==2.0.35
+pytest==9.1.1
+httpx==0.28.1

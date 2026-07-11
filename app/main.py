@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Response, status
 
 from app import storage
 from app.api import health
@@ -46,12 +46,12 @@ def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
     return task
 
 #delete endpoint to delete a specific task by its ID
-@app.delete("/tasks/{task_id}", status_code=status.HTTP_200_OK, tags=["tasks"])
-def delete_task(task_id: str) -> dict[str, str]:
+@app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["tasks"])
+def delete_task(task_id: str) -> Response:
     deleted = storage.delete_task(task_id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
-    return {"message": "Task deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.on_event("startup")
