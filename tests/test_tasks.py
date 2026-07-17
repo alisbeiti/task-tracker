@@ -148,6 +148,18 @@ def test_patch_same_status_returns_422(client: TestClient, created_task: dict) -
     assert "Invalid status transition" in response.json()["detail"]
 
 
+def test_patch_invalid_status_value_pending_returns_422(client: TestClient) -> None:
+    created_response = client.post("/tasks", json={"title": "Example task"})
+    task_id = created_response.json()["id"]
+
+    response = client.patch(f"/tasks/{task_id}", json={"status": "Pending"})
+
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert detail
+    assert "Pending" in str(detail)
+
+
 def test_delete_existing_returns_204_no_body(client: TestClient, created_task: dict) -> None:
     response = client.delete(f"/tasks/{created_task['id']}")
 
