@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Response, status
+from fastapi.middleware.cors import CORSMiddleware
 
 from app import storage
 from app.api import health
@@ -10,6 +11,14 @@ app = FastAPI(
     title="Task Tracker API",
     description="Module 1 Task Tracker REST API skeleton.",
     version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 #post endpoint to create a new task

@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from app import storage
 from app.main import app
-from app.models import TaskCreate, TaskStatus
+from app.models import TaskCreate, TaskPriority, TaskStatus
 
 
 class StatusTransitionTests(unittest.TestCase):
@@ -43,6 +43,26 @@ class StatusTransitionTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
         self.assertIn("Invalid status transition", response.json()["detail"])
+
+    def test_patch_allows_same_status_when_priority_changes(self) -> None:
+        create_response = self.client.post(
+            "/tasks",
+            json={"title": "Triage bug", "status": TaskStatus.TODO.value},
+        )
+        self.assertEqual(create_response.status_code, 201)
+        task_id = create_response.json()["id"]
+
+        response = self.client.patch(
+            f"/tasks/{task_id}",
+            json={
+                "status": TaskStatus.TODO.value,
+                "priority": TaskPriority.HIGH.value,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], TaskStatus.TODO.value)
+        self.assertEqual(response.json()["priority"], TaskPriority.HIGH.value)
 
     def test_patch_skips_validation_when_status_not_provided(self) -> None:
         create_response = self.client.post(

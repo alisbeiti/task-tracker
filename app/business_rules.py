@@ -10,6 +10,9 @@ VALID_TRANSITIONS: frozenset[tuple[TaskStatus, TaskStatus]] = frozenset({
 
 
 def validate_status_transition(current: TaskStatus, new: TaskStatus) -> None:
+    if current == new:
+        return
+
     if (current, new) not in VALID_TRANSITIONS:
         allowed = sorted({f"{from_status.value}->{to_status.value}" for from_status, to_status in VALID_TRANSITIONS})
         raise HTTPException(
