@@ -1,4 +1,4 @@
-During this project I primarily used GitHub Copilot to assist with planning, implementation ideas, test generation, and documentation. AI was particularly useful when designing the search endpoint because it suggested a clean approach that reused the existing GET /tasks endpoint rather than introducing unnecessary APIs.
+During this project I primarily used GitHub Copilot to assist with planning, implementation ideas, test generation, and documentation. 
 
 One area where AI slowed me down was implementing the comments feature. The generated task card modal was not responsive and did not support scrolling, which caused the footer and action buttons to be hidden.
 
