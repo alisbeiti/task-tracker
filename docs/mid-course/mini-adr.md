@@ -15,18 +15,6 @@ The implementation should remain simple and consistent with the existing FastAPI
 
 ### Feature 1
 
-Search + Combined Filters
-
-Supported filters:
-- search
-- status
-- priority
-- assignee
-
-Filtering occurs inside the existing service layer (GET /tasks) without introducing additional endpoints.
-
-### Feature 2
-
 Task comments
 
 New endpoints **List**, **Add**, **Delete** are introduced for comment management. 
@@ -51,3 +39,17 @@ AI suggested:
 ## Rejected Decisions
 
 These alternatives were rejected because they increased complexity and were outside the assignment scope.
+
+
+### Feature 2
+
+Search + Combined Filters
+
+Supported filters:
+- search
+- status
+- priority
+- assignee
+
+Filtering occurs inside the existing service layer (GET /tasks) without introducing additional endpoints.
+

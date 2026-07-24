@@ -13,6 +13,18 @@ Before implementing the features:
 
 Feature 1
 
+✓ Add comment
+
+✓ Reject blank comment
+
+✓ Delete comment
+
+✓ Missing task returns 404
+
+✓ Missing comment returns 404
+
+Feature 2
+
 ✓ Search by title
 
 ✓ Search by description
@@ -23,17 +35,7 @@ Feature 1
 
 ✓ Invalid status returns HTTP 422
 
-Feature 2
 
-✓ Add comment
-
-✓ Reject blank comment
-
-✓ Delete comment
-
-✓ Missing task returns 404
-
-✓ Missing comment returns 404
 
 ---
 
