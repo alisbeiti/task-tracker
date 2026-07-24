@@ -254,4 +254,147 @@ HTTP 404 for a missing comment
 
 ## running the test:
 pytest -q tests/test_tasks.py -k "comment"
+
 6 passed
+
+
+------------------------------------------------------------------------------------------------
+
+## Feature 2 - Search + combined filters
+
+## Prompt 1 - Backend API Changes
+
+I want to implement the "Search + Combined Filters" feature incrementally.
+
+Update only the backend API.
+
+Requirements:
+- Extend the existing GET /tasks endpoint.
+- Support optional query parameters for:
+  - search (search task title and description)
+  - status (ToDo, InProgress, Done)
+  - priority (Low, Medium, High)
+  - assignee
+- Allow multiple filters to be combined in a single request.
+- If no filters are provided, preserve the existing behavior and return all tasks.
+- Return an empty list (HTTP 200) when no tasks match the search or filters.
+- Return HTTP 422 for invalid filter values if the backend validates them.
+- Keep the implementation compatible with the existing JSON-based data storage.
+- Reuse the existing task retrieval logic where possible.
+
+Files to update:
+- main.py
+- storage.py (only if filtering logic belongs there)
+
+Constraints:
+- Do not modify the frontend.
+- Do not write tests yet.
+- Do not introduce new endpoints.
+- Do not introduce new dependencies or frameworks.
+- Keep changes small and consistent with the existing FastAPI architecture.
+
+Output:
+1. Explain the implementation approach.
+2. Show only the modified code.
+
+## AI Response
+
+The existing GET /tasks endpoint now accepts optional query parameters for search, status, priority, and assignee.
+Filtering is applied in the shared storage retrieval path so the behavior stays consistent with the current JSON-backed task model.
+The implementation preserves the existing “return all tasks” behavior when no filters are provided.
+Because status and priority use the existing Pydantic enums, invalid values are handled by FastAPI with HTTP 422 automatically.
+Search is case-insensitive and checks both task title and description.
+
+## Prompt 2 – Frontend Changes
+
+The backend now supports search and combined filters.
+
+Update only the frontend.
+
+Requirements:
+- Add a compact search and filter bar above the task board.
+- Include:
+  - Search text box
+  - Status filter
+  - Priority filter
+  - Assignee filter
+- Call the existing GET /tasks endpoint with the selected query parameters.
+- Allow search and filters to work together.
+- Keep the existing board layout unchanged.
+- Keep all task columns visible, even when no tasks match.
+- Display empty states correctly when a column has no tasks.
+- Display a friendly message when no tasks match the search criteria.
+- Preserve the existing task board behavior.
+
+File to update:
+- index.html
+
+Constraints:
+- Do not modify backend code.
+- Reuse the existing JavaScript functions where possible.
+- Keep the UI simple and consistent with the existing design.
+- Do not redesign the application.
+
+Output:
+1. Explain the UI changes.
+2. Show only the modified HTML/CSS/JavaScript.
+
+## AI Response
+
+The frontend now has a compact toolbar above the task board with:
+
+a search box
+status, priority, and assignee filters
+a clear button
+These controls call the existing GET /tasks endpoint with combined query parameters, so search and filters work together. The existing board layout and task-card behavior remain intact, all three columns stay visible, and empty states now show friendly messages for both empty columns and no-match results.
+
+## Prompt 3 – Regression Tests
+
+The Search + Combined Filters feature has been implemented.
+
+Update only the test suite.
+
+Requirements:
+Add focused regression tests for:
+
+- Searching by task title.
+- Searching by task description.
+- Filtering by status.
+- Filtering by priority.
+- Filtering by assignee.
+- Combining multiple filters (for example, status + priority).
+- Combining search text with filters.
+- Returning HTTP 200 with an empty list when no tasks match.
+- Returning HTTP 422 for invalid filter values if backend validation is implemented.
+- Verifying that GET /tasks without query parameters still returns all tasks.
+
+File to update:
+- test_tasks.py
+
+Constraints:
+- Reuse existing fixtures where possible.
+- Follow the current test style.
+- Keep the tests focused only on search and filtering.
+- Do not modify application code.
+- Do not add unrelated tests.
+
+Output:
+1. Explain the testing strategy.
+2. Show only the new or modified tests.
+3. Explain how to run only these tests before executing the full test suite.
+
+## AI Response
+
+The new regression cases in test_tasks.py are focused only on the search-and-filter behavior for GET /tasks. They cover:
+
+title and description search
+individual filtering by status, priority, and assignee
+combined filters
+combined search + filters
+empty results returning HTTP 200 with an empty list
+invalid filter values returning HTTP 422
+default behavior when no query parameters are provided
+I verified this subset locally with pytest, and it passed: 11 passed, 22 deselected.
+
+## Use this command before the full suite:
+pytest -q tests/test_tasks.py -k "search or filter or combines or matches or invalid_filter_value or without_query_parameters"

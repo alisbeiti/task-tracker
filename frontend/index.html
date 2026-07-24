@@ -129,6 +129,47 @@
         color: #991b1b;
       }
 
+      .state-banner.state-empty {
+        border-color: var(--accent-soft);
+        background: #f8fbff;
+        color: var(--muted);
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 18px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+      }
+
+      .toolbar-search,
+      .toolbar-filter {
+        flex: 1 1 180px;
+        min-width: 140px;
+      }
+
+      .toolbar button {
+        white-space: nowrap;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
       .spinner {
         width: 16px;
         height: 16px;
@@ -496,6 +537,36 @@
         <button id="newTaskButton" class="primary-btn">+ New task</button>
       </header>
 
+      <section class="toolbar" aria-label="Search and filters">
+        <div class="toolbar-search">
+          <label class="visually-hidden" for="searchInput">Search tasks</label>
+          <input id="searchInput" type="search" placeholder="Search tasks" />
+        </div>
+        <div class="toolbar-filter">
+          <label class="visually-hidden" for="statusFilter">Filter by status</label>
+          <select id="statusFilter">
+            <option value="">All statuses</option>
+            <option value="ToDo">To Do</option>
+            <option value="InProgress">In Progress</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div class="toolbar-filter">
+          <label class="visually-hidden" for="priorityFilter">Filter by priority</label>
+          <select id="priorityFilter">
+            <option value="">All priorities</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+        <div class="toolbar-filter">
+          <label class="visually-hidden" for="assigneeFilter">Filter by assignee</label>
+          <input id="assigneeFilter" type="text" placeholder="Assignee" />
+        </div>
+        <button id="clearFiltersButton" type="button" class="secondary-btn">Clear</button>
+      </section>
+
       <section id="stateBanner" class="state-banner state-loading" aria-live="polite">
         <span class="spinner"></span>
         <span id="stateMessage">Loading tasks…</span>
@@ -616,6 +687,12 @@
       const commentInput = document.getElementById("commentInput");
       const commentError = document.getElementById("commentError");
       const commentSubmitButton = document.getElementById("commentSubmitButton");
+      const searchInput = document.getElementById("searchInput");
+      const statusFilter = document.getElementById("statusFilter");
+      const priorityFilter = document.getElementById("priorityFilter");
+      const assigneeFilter = document.getElementById("assigneeFilter");
+      const clearFiltersButton = document.getElementById("clearFiltersButton");
+      let filterDebounceTimeout = null;
 
       document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("newTaskButton").addEventListener("click", () => openModal());
@@ -638,6 +715,12 @@
           });
         });
 
+        searchInput.addEventListener("input", handleFilterChange);
+        statusFilter.addEventListener("change", handleFilterChange);
+        priorityFilter.addEventListener("change", handleFilterChange);
+        assigneeFilter.addEventListener("input", handleFilterChange);
+        clearFiltersButton.addEventListener("click", clearFilters);
+
         taskForm.addEventListener("submit", handleTaskSubmit);
         document.addEventListener("keydown", (event) => {
           if (event.key === "Escape") {
@@ -653,10 +736,56 @@
         loadTasks();
       });
 
+      function handleFilterChange() {
+        if (filterDebounceTimeout) {
+          window.clearTimeout(filterDebounceTimeout);
+        }
+        filterDebounceTimeout = window.setTimeout(() => {
+          void loadTasks();
+        }, 220);
+      }
+
+      function clearFilters() {
+        searchInput.value = "";
+        statusFilter.value = "";
+        priorityFilter.value = "";
+        assigneeFilter.value = "";
+        void loadTasks();
+      }
+
+      function getActiveFilters() {
+        const searchValue = searchInput.value.trim();
+        const statusValue = statusFilter.value;
+        const priorityValue = priorityFilter.value;
+        const assigneeValue = assigneeFilter.value.trim();
+        return { searchValue, statusValue, priorityValue, assigneeValue };
+      }
+
+      function buildTasksUrl() {
+        const { searchValue, statusValue, priorityValue, assigneeValue } = getActiveFilters();
+        const params = new URLSearchParams();
+
+        if (searchValue) {
+          params.set("search", searchValue);
+        }
+        if (statusValue) {
+          params.set("status", statusValue);
+        }
+        if (priorityValue) {
+          params.set("priority", priorityValue);
+        }
+        if (assigneeValue) {
+          params.set("assignee", assigneeValue);
+        }
+
+        const query = params.toString();
+        return `${API_BASE}/tasks${query ? `?${query}` : ""}`;
+      }
+
       async function loadTasks() {
         setState("loading", "Loading tasks…");
         try {
-          const response = await fetch(`${API_BASE}/tasks`);
+          const response = await fetch(buildTasksUrl());
           if (!response.ok) {
             throw new Error("The server could not load the board.");
           }
@@ -669,6 +798,9 @@
 
       function renderBoard() {
         const grouped = { ToDo: [], InProgress: [], Done: [] };
+        const { searchValue, statusValue, priorityValue, assigneeValue } = getActiveFilters();
+        const hasActiveFilters = !!(searchValue || statusValue || priorityValue || assigneeValue);
+
         tasks.forEach((task) => {
           if (grouped[task.status]) {
             grouped[task.status].push(task);
@@ -694,7 +826,9 @@
           if (!sortedTasks.length) {
             const empty = document.createElement("div");
             empty.className = "empty-column";
-            empty.textContent = "No tasks in this column yet.";
+            empty.textContent = hasActiveFilters
+              ? "No tasks in this column match the current filters."
+              : "No tasks in this column yet.";
             list.appendChild(empty);
             return;
           }
@@ -703,7 +837,10 @@
         });
 
         if (!tasks.length) {
-          setState("empty", "No tasks yet. Create the first card to get started.");
+          const emptyMessage = hasActiveFilters
+            ? "No tasks match the current search and filters."
+            : "No tasks yet. Create the first card to get started.";
+          setState("empty", emptyMessage);
           return;
         }
 

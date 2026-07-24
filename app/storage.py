@@ -83,12 +83,38 @@ def add_task(payload: TaskCreate) -> TaskResponse:
     return task
 
 
-def get_all_tasks(status: Optional[TaskStatus] = None, priority: Optional[TaskPriority] = None) -> list[TaskResponse]:
+def get_all_tasks(
+    status: Optional[TaskStatus] = None,
+    priority: Optional[TaskPriority] = None,
+    search: Optional[str] = None,
+    assignee: Optional[str] = None,
+) -> list[TaskResponse]:
     tasks = list(_tasks.values())
+
     if status is not None:
         tasks = [task for task in tasks if task.status == status]
     if priority is not None:
         tasks = [task for task in tasks if task.priority == priority]
+
+    if search is not None:
+        normalized_search = search.strip().lower()
+        if normalized_search:
+            tasks = [
+                task
+                for task in tasks
+                if normalized_search in task.title.lower()
+                or normalized_search in task.description.lower()
+            ]
+
+    if assignee is not None:
+        normalized_assignee = assignee.strip().lower()
+        if normalized_assignee:
+            tasks = [
+                task
+                for task in tasks
+                if task.assignee is not None and normalized_assignee in task.assignee.lower()
+            ]
+
     return sorted(tasks, key=lambda task: task.created_at)
 
 
