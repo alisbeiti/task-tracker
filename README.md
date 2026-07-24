@@ -41,12 +41,12 @@ uvicorn app.main:app --reload --port 8000
 
 On startup, the app will automatically create a local `task_tracker.db` SQLite file (currently with no tables, since no models are defined yet).
 
-The API will be available at `http://localhost:8000`.
+The API will be available at `http://127.0.0.1:8000`.
 
 ## Testing the Health Endpoint
 
 ```bash
-curl http://localhost:8000/health
+curl http://127.0.0.1:8000/health
 ```
 
 Expected response:
@@ -61,3 +61,10 @@ Expected response:
 ## API Documentation (Swagger UI)
 
 Once the server is running, open the following URL in your browser:
+http://127.0.0.1:8000/docs
+
+## Front End 
+## run the server:
+python -m http.server 5500
+## url access:
+http://localhost:5500/frontend/index.html
