@@ -1,11 +1,26 @@
 from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from app import storage
 from app.api import health
 from app.business_rules import validate_status_transition
 from app.database import init_db
-from app.models import TaskCreate, TaskPriority, TaskResponse, TaskStatus, TaskUpdate
+from app.models import Comment, TaskCreate, TaskPriority, TaskResponse, TaskStatus, TaskUpdate
+
+
+class CommentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def validate_text(cls, value: str) -> str:
+        cleaned_value = value.strip()
+        if not cleaned_value:
+            raise ValueError("comment cannot be blank")
+        return cleaned_value
 
 app = FastAPI(
     title="Task Tracker API",
@@ -60,6 +75,42 @@ def delete_task(task_id: str) -> Response:
     deleted = storage.delete_task(task_id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.get("/tasks/{task_id}/comments", response_model=list[Comment], tags=["tasks"])
+def list_task_comments(task_id: str) -> list[Comment]:
+    task = storage.get_task_by_id(task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
+
+    comments = storage.get_task_comments(task_id)
+    if comments is None:
+        raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
+    return comments
+
+
+@app.post("/tasks/{task_id}/comments", response_model=Comment, status_code=status.HTTP_201_CREATED, tags=["tasks"])
+def add_task_comment(task_id: str, payload: CommentCreate) -> Comment:
+    task = storage.get_task_by_id(task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
+
+    comment = storage.add_comment(task_id, payload.text)
+    if comment is None:
+        raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
+    return comment
+
+
+@app.delete("/tasks/{task_id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["tasks"])
+def delete_task_comment(task_id: str, comment_id: str) -> Response:
+    task = storage.get_task_by_id(task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
+
+    deleted = storage.delete_comment(task_id, comment_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Comment with id {comment_id} not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

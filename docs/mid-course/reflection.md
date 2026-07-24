@@ -1,0 +1,7 @@
+During this project I primarily used GitHub Copilot to assist with planning, implementation ideas, test generation, and documentation. AI was particularly useful when designing the search endpoint because it suggested a clean approach that reused the existing GET /tasks endpoint rather than introducing unnecessary APIs.
+
+One area where AI slowed me down was the comments feature. Several responses proposed production-level solutions such as separate database tables, authentication, pagination, and WebSocket notifications. While technically valid, these ideas exceeded the assignment scope, so I spent time simplifying the design.
+
+The most valuable part of using AI was reviewing its suggestions instead of accepting them directly. For example, AI initially recommended searching task IDs in addition to titles and descriptions. After comparing this against the project requirements, I removed that behavior because only title and description searches were required.
+
+Throughout the implementation I treated AI as an assistant rather than an authority. Every code suggestion was reviewed, tested, and adjusted before being incorporated. This process helped ensure that the final implementation remained consistent with the project's architecture while satisfying the assignment requirements. 
