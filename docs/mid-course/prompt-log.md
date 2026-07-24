@@ -147,6 +147,7 @@ GET /tasks/{task_id}/comments
 
 Lists all comments for an existing task.
 Returns 404 if the task does not exist.
+
 POST /tasks/{task_id}/comments
 
 Adds a comment to an existing task.
@@ -159,6 +160,7 @@ Returns 404 if the task does not exist or if the comment does not exist.
 This reuses the existing storage layer and keeps the change localized to the API module.
 
 ---
+
 ### Prompt 4 Update the UI (index.html)
 
 The backend APIs for task comments are complete.
@@ -192,6 +194,21 @@ Output:
 2. Show only the modified HTML/JavaScript.
 3. Explain how to manually verify the feature in the browser.
 
+## AI Response
+
+The frontend now supports task comments directly in the existing task modal without changing the board layout. In index.html, I added:
+
+a compact comments panel inside the task form for viewing existing comments
+an input and action for adding a new comment
+a delete button for each comment
+a comment count shown on each task card footer
+inline status and validation messages for comment actions
+This keeps the existing board and card styling intact while making the comments workflow feel native to the app.
+
+## Prompt 4 Update: Make the Modal Scrollable Since the Previous Update Hides the model's Footer
+
+Update the modal (clsas=modal-card) so that it is scrollable when its content exceeds the available screen height. Keep the header and footer (including the Save Task and Cancel buttons) fixed and always visible, and make only the modal body scrollable. Ensure no content or buttons are cut off on any screen size, while preserving the existing design, layout, and functionality.
+
 ## Prompt 5 Add regression tests
 
 The Task Comments feature has been implemented.
@@ -209,7 +226,7 @@ Add focused regression tests for:
 - Returning HTTP 404 when the requested comment does not exist.
 
 File to update:
-- test_tasks.py
+- tests/test_tasks.py
 
 Constraints:
 - Keep the tests focused on task comments only.
@@ -222,3 +239,19 @@ Output:
 1. Explain the test strategy.
 2. Show only the new or modified tests.
 3. Explain how to run only these tests before executing the full test suite.
+
+
+## AI Response
+
+I updated test_tasks.py with focused regression tests for the comment endpoints only. The new cases reuse the existing client and created_task fixtures, and they cover:
+
+successful comment listing
+successful comment creation
+successful comment deletion
+blank/whitespace-only comment rejection with HTTP 422
+HTTP 404 for a missing task
+HTTP 404 for a missing comment
+
+## running the test:
+pytest -q tests/test_tasks.py -k "comment"
+6 passed
