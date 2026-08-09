@@ -128,4 +128,9 @@ def on_startup() -> None:
     init_db()
 
 
+@app.get("/version", tags=["meta"])
+def get_version() -> dict:
+    return {"version": app.version}
+
+
 app.include_router(health.router)
