@@ -18,20 +18,29 @@ Base = declarative_base()
 
 
 def init_db() -> None:
-    """
-    Create all database tables based on models registered against Base.
+    """Create all database tables registered against ``Base``, if missing.
 
-    Currently there are no models defined yet (CRUD/entities come in a
-    later module), so this creates an empty SQLite database file if one
-    doesn't already exist. Safe to call multiple times.
+    Safe to call multiple times.
+
+    [VERIFY]: no ORM models are currently registered against ``Base``,
+    so this presently creates an empty SQLite database file with no
+    tables. Task data is stored in-memory via ``app.storage`` rather
+    than through this database/engine — confirm whether that split is
+    intentional or ``app.storage`` is meant to be migrated onto this
+    database later.
+
+    Returns:
+        None.
     """
     Base.metadata.create_all(bind=engine)
 
 
 def get_db():
-    """
-    FastAPI dependency that provides a database session per request,
-    and ensures it is closed afterward.
+    """FastAPI dependency that provides a database session per request.
+
+    Yields:
+        Session: A SQLAlchemy session, closed automatically once the
+            request finishes.
     """
     db = SessionLocal()
     try:

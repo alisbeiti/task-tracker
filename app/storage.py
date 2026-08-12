@@ -57,6 +57,16 @@ def _replace_task_comments(task: TaskResponse, comments: list[Comment]) -> TaskR
 
 
 def load_tasks_from_json(task_payloads: list[dict]) -> None:
+    """Replace all in-memory tasks with the given payloads.
+
+    Args:
+        task_payloads: Task dicts (e.g. as previously produced by
+            ``save_tasks_to_json``) to load. Existing in-memory tasks
+            are cleared first.
+
+    Returns:
+        None.
+    """
     _tasks.clear()
     for task_payload in task_payloads:
         task = _hydrate_task(task_payload)
@@ -64,10 +74,25 @@ def load_tasks_from_json(task_payloads: list[dict]) -> None:
 
 
 def save_tasks_to_json() -> list[dict]:
+    """Serialize all in-memory tasks to JSON-compatible dicts.
+
+    Returns:
+        One dict per task, in JSON mode (e.g. datetimes rendered as
+        ISO strings).
+    """
     return [task.model_dump(mode="json") for task in _tasks.values()]
 
 
 def add_task(payload: TaskCreate) -> TaskResponse:
+    """Create and store a new task.
+
+    Args:
+        payload: Validated task-creation fields.
+
+    Returns:
+        The newly created task, with a generated ``id`` and
+        ``created_at``/``updated_at`` set to the current UTC time.
+    """
     now = datetime.now(timezone.utc)
     task = TaskResponse(
         id=str(uuid4()),
@@ -89,6 +114,23 @@ def get_all_tasks(
     search: Optional[str] = None,
     assignee: Optional[str] = None,
 ) -> list[TaskResponse]:
+    """Return in-memory tasks matching the given filters.
+
+    Args:
+        status: If provided, only tasks with this exact status are kept.
+        priority: If provided, only tasks with this exact priority are
+            kept.
+        search: If provided, a case-insensitive substring match against
+            each task's ``title`` and ``description``; blank/whitespace-
+            only values are treated as no filter.
+        assignee: If provided, a case-insensitive substring match
+            against each task's ``assignee``; blank/whitespace-only
+            values are treated as no filter, and tasks with no assignee
+            never match.
+
+    Returns:
+        Matching tasks, sorted by ``created_at`` ascending.
+    """
     tasks = list(_tasks.values())
 
     if status is not None:
@@ -119,10 +161,39 @@ def get_all_tasks(
 
 
 def get_task_by_id(task_id: str) -> Optional[TaskResponse]:
+    """Look up a task by id.
+
+    Args:
+        task_id: The task's unique identifier.
+
+    Returns:
+        The matching task, or ``None`` if no task with ``task_id``
+        exists.
+    """
     return _tasks.get(task_id)
 
 
 def update_task(task_id: str, payload: TaskUpdate) -> Optional[TaskResponse]:
+    """Apply a partial update to an existing task.
+
+    Only fields explicitly set on ``payload`` are applied (via
+    ``model_dump(exclude_unset=True)``); fields omitted from the
+    request are left unchanged. If ``payload`` has no fields set, the
+    existing task is returned unchanged.
+
+    [VERIFY]: an explicit ``null`` for a nullable field (e.g.
+    ``assignee``) counts as "set" under ``exclude_unset`` and will
+    clear the field. Confirm this is the intended behavior vs.
+    treating ``null`` as "no change".
+
+    Args:
+        task_id: The task's unique identifier.
+        payload: Fields to update.
+
+    Returns:
+        The updated task, or ``None`` if no task with ``task_id``
+        exists.
+    """
     existing_task = _tasks.get(task_id)
     if existing_task is None:
         return None
@@ -141,10 +212,33 @@ def update_task(task_id: str, payload: TaskUpdate) -> Optional[TaskResponse]:
 
 
 def delete_task(task_id: str) -> bool:
+    """Delete a task by id.
+
+    Args:
+        task_id: The task's unique identifier.
+
+    Returns:
+        True if a task was deleted, False if no task with ``task_id``
+        existed.
+    """
     return _tasks.pop(task_id, None) is not None
 
 
 def add_comment(task_id: str, text: str) -> Optional[Comment]:
+    """Add a comment to an existing task.
+
+    Args:
+        task_id: The task's unique identifier.
+        text: Raw comment text; leading/trailing whitespace is
+            stripped.
+
+    Returns:
+        The newly created comment, or ``None`` if no task with
+        ``task_id`` exists.
+
+    Raises:
+        ValueError: If the stripped text is empty.
+    """
     existing_task = _tasks.get(task_id)
     if existing_task is None:
         return None
@@ -166,6 +260,15 @@ def add_comment(task_id: str, text: str) -> Optional[Comment]:
 
 
 def get_task_comments(task_id: str) -> Optional[list[Comment]]:
+    """List comments on a task.
+
+    Args:
+        task_id: The task's unique identifier.
+
+    Returns:
+        The task's comments, or ``None`` if no task with ``task_id``
+        exists.
+    """
     existing_task = _tasks.get(task_id)
     if existing_task is None:
         return None
@@ -173,6 +276,16 @@ def get_task_comments(task_id: str) -> Optional[list[Comment]]:
 
 
 def delete_comment(task_id: str, comment_id: str) -> bool:
+    """Delete a single comment from a task.
+
+    Args:
+        task_id: The task's unique identifier.
+        comment_id: The comment's unique identifier.
+
+    Returns:
+        True if a comment was deleted, False if the task does not
+        exist or the comment was not found on that task.
+    """
     existing_task = _tasks.get(task_id)
     if existing_task is None:
         return False

@@ -7,11 +7,19 @@ router = APIRouter()
 
 @router.get("/health")
 def health_check() -> dict:
-    """
-    Simple liveness check endpoint.
+    """Report basic service liveness.
 
-    Returns HTTP 200 with a JSON body indicating service status
-    and the current UTC timestamp in ISO 8601 format.
+    Returns:
+        A dict with ``status`` set to ``"ok"``, a ``responseCode`` of
+        ``"RC-001"``, and the current UTC ``timestamp`` in ISO 8601
+        format.
+
+        [VERIFY]: ``responseCode`` is always the literal ``"RC-001"``
+        here; confirm whether other response codes are ever expected.
+
+    Example:
+        ``GET /health`` returns ``200`` with
+        ``{"status": "ok", "responseCode": "RC-001", "timestamp": "..."}``.
     """
     return {
         "status": "ok",
