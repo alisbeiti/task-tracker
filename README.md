@@ -4,7 +4,7 @@ A learning-focused REST API for managing tasks — Module 4 of the AI-Assisted C
 
 ## 1. Project Overview
 
-The Task Tracker API supports creating, listing (with filters and search), updating, and deleting tasks, plus adding, listing, and deleting comments on a task. Task status transitions are restricted to a fixed set of valid moves (see [Project Conventions and Current Limitations](#9-project-conventions-and-current-limitations)).
+The Task Tracker API supports creating, listing (with filters and search), updating, and deleting tasks, plus adding, listing, and deleting comments on a task. When a task's status is changed via `PATCH`, the transition is restricted to a fixed set of valid moves (see [Project Conventions and Current Limitations](#9-project-conventions-and-current-limitations)); this check does not apply to the initial status set at creation time.
 
 Storage is currently **in-memory** (a module-level dict in `app/storage.py`) — task data does not persist across restarts. SQLAlchemy/SQLite are scaffolded in `app/database.py` but not wired to task storage; see [Project Conventions and Current Limitations](#9-project-conventions-and-current-limitations).
 
@@ -200,7 +200,7 @@ Classes in `app/` that define their own methods (Pydantic validators), and what 
 - **No production database** — SQLite is scaffolded but not backing storage; see above.
 - **Permissive CORS**: `app/main.py` sets `allow_origins=["*"]` with `allow_credentials=True`, so any origin can call the API. This exists because the frontend (port 5500) and API (port 8000) run as separate local servers — it is not hardened for any deployed use.
 - **Comments are nested under tasks**, not a top-level resource (`GET/POST /tasks/{id}/comments`, `DELETE /tasks/{id}/comments/{comment_id}`).
-- **Status transitions are restricted**: `ToDo → InProgress`, `InProgress → Done`, `Done → InProgress`, and same-status no-ops are allowed; any other transition returns `HTTP 422` (`app/business_rules.py`).
+- **Status transitions are restricted on update only**: `PATCH /tasks/{task_id}` enforces `ToDo → InProgress`, `InProgress → Done`, `Done → InProgress`, and same-status no-ops; any other transition returns `HTTP 422` (`app/business_rules.py`). `POST /tasks` does not run this check, so a task can be created directly with any status.
 - **No pagination** on `GET /tasks`.
 - This project does not claim deployment readiness, authentication, a production database, or production readiness of any kind — it is a local learning project only.
 

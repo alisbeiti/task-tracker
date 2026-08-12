@@ -9,78 +9,11 @@ from app.models import Comment, TaskCreate, TaskPriority, TaskResponse, TaskStat
 _tasks: dict[str, TaskResponse] = {}
 
 
-def _coerce_comments(comment_data: object, task_id: str) -> list[Comment]:
-    if not comment_data:
-        return []
-    if not isinstance(comment_data, list):
-        return []
-
-    comments: list[Comment] = []
-    for item in comment_data:
-        if isinstance(item, Comment):
-            comments.append(item)
-        elif isinstance(item, dict):
-            payload = dict(item)
-            payload.setdefault("id", str(uuid4()))
-            payload.setdefault("task_id", task_id)
-            payload.setdefault("created_at", datetime.now(timezone.utc))
-            comments.append(Comment(**payload))
-        else:
-            comments.append(
-                Comment(
-                    id=str(uuid4()),
-                    task_id=task_id,
-                    text=str(item),
-                    created_at=datetime.now(timezone.utc),
-                )
-            )
-    return comments
-
-
-def _hydrate_task(task_data: dict) -> TaskResponse:
-    payload = dict(task_data)
-    payload["comments"] = _coerce_comments(payload.get("comments"), payload.get("id") or str(uuid4()))
-
-    if isinstance(payload.get("created_at"), str):
-        payload["created_at"] = datetime.fromisoformat(payload["created_at"])
-    if isinstance(payload.get("updated_at"), str):
-        payload["updated_at"] = datetime.fromisoformat(payload["updated_at"])
-
-    return TaskResponse(**payload)
-
-
 def _replace_task_comments(task: TaskResponse, comments: list[Comment]) -> TaskResponse:
     updated_data = task.model_dump()
     updated_data["comments"] = comments
     updated_data["updated_at"] = datetime.now(timezone.utc)
     return TaskResponse(**updated_data)
-
-
-def load_tasks_from_json(task_payloads: list[dict]) -> None:
-    """Replace all in-memory tasks with the given payloads.
-
-    Args:
-        task_payloads: Task dicts (e.g. as previously produced by
-            ``save_tasks_to_json``) to load. Existing in-memory tasks
-            are cleared first.
-
-    Returns:
-        None.
-    """
-    _tasks.clear()
-    for task_payload in task_payloads:
-        task = _hydrate_task(task_payload)
-        _tasks[task.id] = task
-
-
-def save_tasks_to_json() -> list[dict]:
-    """Serialize all in-memory tasks to JSON-compatible dicts.
-
-    Returns:
-        One dict per task, in JSON mode (e.g. datetimes rendered as
-        ISO strings).
-    """
-    return [task.model_dump(mode="json") for task in _tasks.values()]
 
 
 def add_task(payload: TaskCreate) -> TaskResponse:

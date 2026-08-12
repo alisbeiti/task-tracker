@@ -34,4 +34,3 @@ task_tracker.db
 frontend
 tests
 docs
-temp_verify_comments.py

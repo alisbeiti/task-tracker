@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-A learning-focused Task Tracker REST API — Module 4 of the AI-Assisted Coding course. Runs entirely locally: no Docker, no cloud dependencies, no external database server (per `docs/mid-course/mini-adr.md`).
+A learning-focused Task Tracker REST API — Module 4 of the AI-Assisted Coding course. Runs locally: no cloud dependencies, no external database server. A `Dockerfile` and CI workflow (`.github/workflows/ci.yml`) exist for local containerized runs and automated test runs (see `README.md`) — this is still a local learning project with no cloud deployment.
 
 ## 1. Tech Stack
 
@@ -98,6 +98,6 @@ CORS: `app/main.py` adds `CORSMiddleware` with `allow_origins=["*"]`, `allow_cre
 
 - Do not add authentication/authorization.
 - Do not add a database, and do not start actually wiring up the SQLAlchemy engine already scaffolded in `app/database.py` — this course intentionally uses in-memory storage (see Architecture).
-- Do not add deployment steps or configuration (Docker, cloud hosting, CI/CD) — explicitly out of scope per `docs/mid-course/mini-adr.md`.
+- Docker (`Dockerfile`) and CI (`.github/workflows/ci.yml`) already exist for local container runs and automated testing; do not add cloud hosting or deployment configuration beyond that without asking first.
 - Do not make major UI changes to `frontend/index.html`.
 - Ask first before doing any of the above, rather than assuming it's wanted.
