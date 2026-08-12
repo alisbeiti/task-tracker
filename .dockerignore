@@ -1,0 +1,37 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Version control
+.git
+.gitignore
+.github
+
+# Python virtual envs
+venv
+.venv
+
+# Python build/cache artifacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.pytest_cache
+
+# Node (if ever present)
+node_modules
+
+# Local OS / editor files
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+
+# Local dev-only artifacts not needed in the image
+task_tracker.db
+frontend
+tests
+docs
+temp_verify_comments.py
