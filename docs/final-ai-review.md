@@ -42,6 +42,25 @@ I rejected the AI code-review comment that claimed the current `CLAUDE.md` forbi
 2. Always verify AI claims against the current repository files and supported test or run commands before accepting them.
 3. Record AI contributions by noting the claim, the evidence checked, the decision made, and any remaining uncertainty.
 
+## app/ change disclosure: database scaffold
+
+`app/database.py` (SQLAlchemy engine/session/`init_db()`), `sqlalchemy==2.0.35` in
+`requirements.txt`, and `DATABASE_URL` in `.env.example`/`app/core/config.py` are
+not new work from this branch. `app/database.py` was created in the repository's
+initial commit (`b4655d5`, 2026-07-10) — before this final-project branch existed.
+Diffing `final-project` against its merge-base with `main` confirms
+`app/core/config.py`, `.env.example`, and `requirements.txt` have zero changes on
+this branch; `app/database.py` and the `init_db()` startup hook in `app/main.py`
+received only a docstring reformat (Google-style), with no schema, model, or
+wiring change — the docstring still states the schema is "(currently empty)."
+
+No ORM models are registered against `Base`; `app/storage.py`'s in-memory dict
+remains the only place task data is stored. This is already disclosed in
+`README.md` (storage model: line 13; no production database claimed: line 15;
+`[VERIFY]` empty-schema note: line 71; an AI suggestion to finish wiring the
+database was explicitly rejected: line 155). This entry closes the gap of that
+disclosure not being repeated in the final-project documentation set.
+
 ## Ownership statement
 
 I reviewed the repository guidance, code-review comments, security findings, and manual security-check notes rather than accepting AI output automatically. I verified the cited current files and distinguished course-scope limitations from present defects. I rejected a stale AI claim after checking the current documentation and retained only findings supported by the repository. I understand the project’s local-only, in-memory, and intentionally unauthenticated scope, including what would need to change before broader deployment. I am comfortable submitting this work because the final decisions and verification are my own.
